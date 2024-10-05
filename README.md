@@ -1,4 +1,4 @@
-`manual-classifier` is a simple Python GUI tool for manually classifying text blocks in PDF files. The tool displays each block of text from a PDF, allowing users to classify them as "Header," "Body," "Footer," or "Quote" using buttons or keyboard shortcuts (1-4). Users can also undo the last classification. The tool saves the classifications to an output file.
+`manual-classifier` is a simple Python GUI tool for manually classifying text blocks in PDF files. The tool displays each block of text from a PDF, allowing users to classify them as "Header," "Body," "Footer," or "Quote" using buttons or keyboard shortcuts (1-4). Users can undo the last classification. The blocks are then written into an output file in their appropriate tags for further automated processing.
 
 ### How to use:
 1. Run `manually_classify.py`.
