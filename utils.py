@@ -16,18 +16,18 @@ def extract_blocks(pdf_path):
     doc.close()
     return blocks
 
-def drop_to_file(block_text, block_type):
+def drop_to_file(block_text, block_type, block_page_number):
     with open("output.txt", "a", encoding='utf-8') as file:
         if block_type == 'Header':
-            file.write(f"<h1>{block_text}</h1>\n\n")
+            file.write(f"<h1>{block_text}<{block_page_number + 1}>\n\n")
         elif block_type == 'Body':
-            file.write(f"<body>{block_text}</body>\n\n")
+            file.write(f"<body>{block_text}<{block_page_number + 1}>\n\n")
         elif block_type == 'Footer':
-            file.write(f"<footer>{block_text}</footer>\n\n")
+            file.write(f"<footer>{block_text}<{block_page_number + 1}>\n\n")
         elif block_type == 'Quote':
-            file.write(f"<blockquote>{block_text}</blockquote>\n\n")
+            file.write(f"<blockquote>{block_text}<{block_page_number + 1}>\n\n")
         else:
-            file.write(f"{block_text}\n\n")
+            file.write(f"{block_text} ERROR\n\n")
 
 def delete_if_exists(del_file):
     if os.path.exists(del_file):

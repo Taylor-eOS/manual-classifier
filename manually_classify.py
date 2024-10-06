@@ -85,10 +85,11 @@ class ManualClassifierGUI:
         label = self.button_texts[label_idx]
         block = self.all_blocks[self.current_index]
         block_text = block['raw_block'][4]
+        block_page_number = block['page']
         if self.pending_classification is not None:
-            drop_to_file(self.pending_classification[0], self.pending_classification[1])
+            drop_to_file(self.pending_classification[0], self.pending_classification[1], self.pending_classification[2])
             self.undo_stack.append(self.pending_classification)
-        self.pending_classification = (block_text, label)
+        self.pending_classification = (block_text, label, block_page_number)
         self.current_index += 1
         self.load_current_block()
 
@@ -119,7 +120,7 @@ class ManualClassifierGUI:
 
     def on_close(self):
         if self.pending_classification is not None:
-            drop_to_file(self.pending_classification[0], self.pending_classification[1])
+            drop_to_file(self.pending_classification[0], self.pending_classification[1], self.pending_classification[2])
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.doc.close()
             self.root.destroy()
