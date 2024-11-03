@@ -24,24 +24,24 @@ class ManualClassifierGUI:
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.control_frame = tk.Frame(self.root)
         self.control_frame.pack(pady=10)
-        self.button_texts = ["Header", "Body", "Footer", "Quote"]
+        self.button_texts = ["Header", "Body", "Footer", "Quote", "Exclude"]
         self.buttons = []
         for idx, text in enumerate(self.button_texts):
-            btn = tk.Button(self.control_frame, text=text, width=6,
-                            command=lambda i=idx: self.classify(i))
+            btn = tk.Button(self.control_frame, text=text, width=6, command=lambda i=idx: self.classify(i))
             btn.grid(row=0, column=idx, padx=1)
             self.buttons.append(btn)
-        self.undo_button = tk.Button(self.control_frame, text="Undo", width=4, command=self.undo)
+        self.undo_button = tk.Button(self.control_frame, text="Undo", width=3, command=self.undo)
         self.undo_button.grid(row=0, column=len(self.button_texts), padx=1)
         self.status_var = tk.StringVar()
         self.status_var.set("Loading...")
         self.status_label = tk.Label(self.root, textvariable=self.status_var)
         self.status_label.pack(pady=5)
         self.load_current_block()
-        self.root.bind('0', lambda event: self.classify(0))
+        self.root.bind('h', lambda event: self.classify(0))
         self.root.bind('1', lambda event: self.classify(1))
         self.root.bind('2', lambda event: self.classify(2))
         self.root.bind('3', lambda event: self.classify(3))
+        self.root.bind('e', lambda event: self.classify(4))
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.mainloop()
 
@@ -52,9 +52,9 @@ class ManualClassifierGUI:
             self.root.quit()
             return
         block = self.all_blocks[self.current_index]
-        page_number = block['page']  
+        page_number = block['page']
         page = self.doc.load_page(page_number)
-        zoom = 2    
+        zoom = 2
         mat = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=mat)
         mode = "RGB" if pix.alpha == 0 else "RGBA"
@@ -64,13 +64,13 @@ class ManualClassifierGUI:
         x1_zoomed, y1_zoomed = x1 * zoom, y1 * zoom
         draw = ImageDraw.Draw(img)
         draw.rectangle([x0_zoomed, y0_zoomed, x1_zoomed, y1_zoomed], outline="black", width=2)
-        max_width, max_height = 1200, 800
+        max_width, max_height = 1400, 800
         img_width, img_height = img.size
         scale = min(max_width / img_width, max_height / img_height, 1)
         new_size = (int(img_width * scale), int(img_height * scale))
         img = img.resize(new_size, Image.Resampling.LANCZOS)
         self.photo = ImageTk.PhotoImage(img)
-        self.canvas.delete("all")  
+        self.canvas.delete("all")
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -83,6 +83,10 @@ class ManualClassifierGUI:
 
     def classify(self, label_idx):
         label = self.button_texts[label_idx]
+        if label == "Exclude":
+            self.current_index += 1
+            self.load_current_block()
+            return
         block = self.all_blocks[self.current_index]
         block_text = block['raw_block'][4]
         block_page_number = block['page']
@@ -127,7 +131,7 @@ class ManualClassifierGUI:
             sys.exit()
 
 def main():
-    file_name = input("File name: ")
+    file_name = input("File name (without ending): ")
     pdf_path = f"{file_name}.pdf"
     output_file = "output.txt"
     if not os.path.exists(pdf_path):
@@ -139,3 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
