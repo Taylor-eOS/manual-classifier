@@ -1,9 +1,10 @@
-`manual-classifier` is a simple Python GUI tool for manually classifying text blocks in PDF files. The tool displays each block of text from a PDF, allowing users to classify them as "Header," "Body," "Footer," or "Quote" using buttons or keyboard shortcuts (0-3). Users can undo the last classification. The blocks are then written into an output file in their appropriate tags for further automated processing, for instance with my repository [txt-to-epub](https://github.com/Taylor-eOS/txt-to-epub), which should in theory work.
+`manual-classifier` is a simple Python GUI tool for extracting and classifying text blocks from PDF files. The tool displays each block of text, allowing the user to select "Header," "Body," "Footer," or "Quote" using buttons or keyboard shortcuts (1-3, H, E). In the case of a mistake, the last classification can be undone (or the output file edited). The blocks are written into an output file in their appropriate tags for further automated processing, for instance with [txt-to-epub](https://github.com/Taylor-eOS/txt-to-epub).
 
 ### How to use:
-- Run `manually_classify.py`.
-- Enter the PDF file name when prompted.
+- Make a project, venv environment, and install requirements. (A detailed guide for the whole installation process can be found [here](https://github.com/Taylor-eOS/whisper).
+- Run `python manually_classify.py`.
+- Enter input file basename when prompted.
 - Use the GUI to classify each text block.
 - The classifications are saved to `output.txt`.
 
-This was originally meant to create training data for an automated classifier, but that was so much trouble that the manual classification seems easier.
+This was originally meant to create training data for [a machine learning classifier](https://github.com/Taylor-eOS/bert-classifier). However that proved too unreliable, so the manual classification is preferred.
