@@ -1,2 +1,5 @@
 Pillow
 PyMuPDF
+spacy
+numpy
+wordfreq
