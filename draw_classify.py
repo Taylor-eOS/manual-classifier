@@ -44,28 +44,26 @@ class ManualClassifierGUI:
         self.control_frame.pack(pady=10, fill=tk.X)
         
         # Label buttons
-        self.button_texts = ["Header", "Body", "Footer", "Quote", "Exclude"]
+        self.button_texts = ["Header", "Body", "Footer", "Quote", "Excl."]
         self.buttons = []
         for idx, text in enumerate(self.button_texts):
             btn = tk.Button(
                 self.control_frame,
                 text=text,
-                width=8,
                 command=lambda t=text: self.set_current_label(t)
             )
-            btn.grid(row=0, column=idx, padx=2)
+            btn.grid(row=0, column=idx, padx=1)
             self.buttons.append(btn)
         
         # Next page button
         self.next_button = tk.Button(
             self.control_frame,
-            text="Next Page",
-            width=10,
+            text="Next",
             command=self.next_page,
             bg="#4CAF50",
             fg="white"
         )
-        self.next_button.grid(row=0, column=len(self.button_texts), padx=10)
+        self.next_button.grid(row=0, column=len(self.button_texts), padx=1)
         
         # Status label
         self.status_var = tk.StringVar()
