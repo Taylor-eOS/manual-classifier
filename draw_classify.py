@@ -12,7 +12,7 @@ class ManualClassifierGUI:
         self.total_pages = self.doc.page_count
         self.all_blocks = extract_blocks(pdf_path)
         self.current_page = 0
-        # For each block store the classification (or None if unclassified)
+        # For each block store the classification (None if unmarked)
         self.block_classifications = [None] * len(self.all_blocks)
         self.current_label = 'Body'
         
@@ -50,7 +50,7 @@ class ManualClassifierGUI:
             btn = tk.Button(
                 self.control_frame,
                 text=text,
-                command=lambda t=text: self.set_current_label(t)
+                command=lambda t=text: self.set_current_label(t if t != "Excl." else "Exclude")
             )
             btn.grid(row=0, column=idx, padx=1)
             self.buttons.append(btn)
@@ -119,6 +119,7 @@ class ManualClassifierGUI:
             zoomed_y0 = block['y0'] * self.zoom * self.scale
             zoomed_x1 = block['x1'] * self.zoom * self.scale
             zoomed_y1 = block['y1'] * self.zoom * self.scale
+            # Use the color corresponding to the classification, or black if unmarked.
             outline_color = self.label_colors.get(self.block_classifications[idx], 'black')
             self.canvas.create_rectangle(
                 zoomed_x0, zoomed_y0, zoomed_x1, zoomed_y1,
@@ -154,16 +155,20 @@ class ManualClassifierGUI:
 
     def update_button_highlight(self):
         for btn in self.buttons:
-            btn.config(relief=tk.SUNKEN if btn['text'] == self.current_label else tk.RAISED)
+            btn.config(relief=tk.SUNKEN if btn['text'] == (self.current_label if self.current_label != "Exclude" else "Excl.") else tk.RAISED)
 
     def process_current_page(self):
-        """Sort and write out the blocks on the current page in reading order."""
+        """Sort and write out the blocks on the current page in reading order.
+           Unmarked blocks are treated as 'Exclude' and omitted from output."""
         page_blocks = [(idx, block) for idx, block in enumerate(self.all_blocks)
                        if block['page'] == self.current_page]
         page_blocks.sort(key=lambda tup: (tup[1]['y0'], tup[1]['x0']))
         for idx, block in page_blocks:
+            # Treat unmarked blocks as 'Exclude'
             classification = self.block_classifications[idx] or 'Exclude'
-            drop_to_file(block['raw_block'][4], classification, block['page'])
+            # Only output blocks that are not excluded.
+            if classification != 'Exclude':
+                drop_to_file(block['raw_block'][4], classification, block['page'])
     
     def next_page(self):
         self.process_current_page()
@@ -189,6 +194,7 @@ def main():
     if not os.path.exists(pdf_path):
         print(f"Error: File {pdf_path} not found!")
         return
+    # Clear the output file
     open("output.txt", "w", encoding='utf-8').close()
     ManualClassifierGUI(pdf_path)
     print("Classification saved to output.txt")
