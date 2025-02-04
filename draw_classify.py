@@ -11,11 +11,9 @@ class ManualClassifierGUI:
         self.doc = fitz.open(pdf_path)
         self.total_pages = self.doc.page_count
         self.all_blocks = extract_blocks(pdf_path)
-        self.total_blocks = len(self.all_blocks)
         self.current_page = 0
-        # For each block (by index) store the classification chosen on that page.
-        self.block_classifications = [None] * self.total_blocks
-        self.undo_stack = []
+        # For each block store the classification (or None if unclassified)
+        self.block_classifications = [None] * len(self.all_blocks)
         self.current_label = 'Body'
         
         self.label_colors = {
@@ -37,15 +35,15 @@ class ManualClassifierGUI:
         self.root = tk.Tk()
         self.root.title("Manual PDF Block Classifier")
         
-        # Canvas setup
+        # Canvas for displaying the page image
         self.canvas = tk.Canvas(self.root, bg="white")
         self.canvas.pack(fill=tk.BOTH, expand=True)
         
-        # Control panel
+        # Control panel for label selection and navigation
         self.control_frame = tk.Frame(self.root)
         self.control_frame.pack(pady=10, fill=tk.X)
         
-        # Create label buttons
+        # Label buttons
         self.button_texts = ["Header", "Body", "Footer", "Quote", "Exclude"]
         self.buttons = []
         for idx, text in enumerate(self.button_texts):
@@ -58,14 +56,7 @@ class ManualClassifierGUI:
             btn.grid(row=0, column=idx, padx=2)
             self.buttons.append(btn)
         
-        # Control buttons
-        self.undo_button = tk.Button(
-            self.control_frame,
-            text="Undo",
-            width=6,
-            command=self.undo
-        )
-        self.undo_button.grid(row=0, column=5, padx=2)
+        # Next page button
         self.next_button = tk.Button(
             self.control_frame,
             text="Next Page",
@@ -74,7 +65,7 @@ class ManualClassifierGUI:
             bg="#4CAF50",
             fg="white"
         )
-        self.next_button.grid(row=0, column=6, padx=10)
+        self.next_button.grid(row=0, column=len(self.button_texts), padx=10)
         
         # Status label
         self.status_var = tk.StringVar()
@@ -122,16 +113,14 @@ class ManualClassifierGUI:
         self.canvas.delete("all")
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
         
-        # Draw block outlines for the current page
+        # Draw block outlines on current page in natural order
         for idx, block in enumerate(self.all_blocks):
             if block['page'] != self.current_page:
                 continue
-            # Scale coordinates
             zoomed_x0 = block['x0'] * self.zoom * self.scale
             zoomed_y0 = block['y0'] * self.zoom * self.scale
             zoomed_x1 = block['x1'] * self.zoom * self.scale
             zoomed_y1 = block['y1'] * self.zoom * self.scale
-            # Outline color is based on the classification so far (or black if not yet set)
             outline_color = self.label_colors.get(self.block_classifications[idx], 'black')
             self.canvas.create_rectangle(
                 zoomed_x0, zoomed_y0, zoomed_x1, zoomed_y1,
@@ -151,15 +140,11 @@ class ManualClassifierGUI:
         y = self.canvas.canvasy(event.y)
         pdf_x = x / (self.zoom * self.scale)
         pdf_y = y / (self.zoom * self.scale)
-        # Find the clicked block on the current page (in case of overlapping blocks, the first found)
+        # Identify the clicked block on the current page
         for idx, block in enumerate(self.all_blocks):
             if block['page'] != self.current_page:
                 continue
-            if (block['x0'] <= pdf_x <= block['x1'] and
-                block['y0'] <= pdf_y <= block['y1']):
-                # Record the classification for that block.
-                # Save undo info as (block index, previous label)
-                self.undo_stack.append([(idx, self.block_classifications[idx])])
+            if block['x0'] <= pdf_x <= block['x1'] and block['y0'] <= pdf_y <= block['y1']:
                 self.block_classifications[idx] = self.current_label
                 self.load_current_page()
                 break
@@ -173,29 +158,16 @@ class ManualClassifierGUI:
         for btn in self.buttons:
             btn.config(relief=tk.SUNKEN if btn['text'] == self.current_label else tk.RAISED)
 
-    def undo(self):
-        if not self.undo_stack:
-            messagebox.showwarning("Undo", "No actions to undo.")
-            return
-        last_action = self.undo_stack.pop()
-        for idx, prev_label in last_action:
-            self.block_classifications[idx] = prev_label
-        self.load_current_page()
-
     def process_current_page(self):
-        """Process and write out the blocks for the current page in reading order."""
-        # Get indices and blocks for the current page
+        """Sort and write out the blocks on the current page in reading order."""
         page_blocks = [(idx, block) for idx, block in enumerate(self.all_blocks)
                        if block['page'] == self.current_page]
-        # Sort by y0 (top-to-bottom) then x0 (left-to-right)
         page_blocks.sort(key=lambda tup: (tup[1]['y0'], tup[1]['x0']))
         for idx, block in page_blocks:
-            # If a block hasn’t been clicked, assume it is to be excluded.
             classification = self.block_classifications[idx] or 'Exclude'
             drop_to_file(block['raw_block'][4], classification, block['page'])
     
     def next_page(self):
-        # Process the current page and then move on.
         self.process_current_page()
         self.current_page += 1
         if self.current_page >= self.total_pages:
@@ -204,10 +176,9 @@ class ManualClassifierGUI:
             self.load_current_page()
 
     def finish_classification(self):
-        # Process the last page if necessary.
         if self.current_page < self.total_pages:
             self.process_current_page()
-        messagebox.showinfo("Complete", "Classification saved")
+        messagebox.showinfo("Complete", "Classification saved successfully!")
         self.doc.close()
         self.root.quit()
 
@@ -220,6 +191,7 @@ def main():
     if not os.path.exists(pdf_path):
         print(f"Error: File {pdf_path} not found!")
         return
+    open("output.txt", "w", encoding='utf-8').close()
     ManualClassifierGUI(pdf_path)
     print("Classification saved to output.txt")
 
