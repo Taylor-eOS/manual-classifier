@@ -4,7 +4,7 @@ import fitz
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk, ImageDraw
-from utils import (extract_blocks, drop_to_file,)
+from utils import extract_blocks, drop_to_file
 
 class ManualClassifierGUI:
     def __init__(self, pdf_path, output_file="output.txt"):
@@ -38,9 +38,9 @@ class ManualClassifierGUI:
         self.status_label.pack(pady=5)
         self.load_current_block()
         self.root.bind('h', lambda event: self.classify(0))
-        self.root.bind('1', lambda event: self.classify(1))
-        self.root.bind('2', lambda event: self.classify(2))
-        self.root.bind('3', lambda event: self.classify(3))
+        self.root.bind('b', lambda event: self.classify(1))
+        self.root.bind('f', lambda event: self.classify(2))
+        self.root.bind('q', lambda event: self.classify(3))
         self.root.bind('e', lambda event: self.classify(4))
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.mainloop()
@@ -91,7 +91,13 @@ class ManualClassifierGUI:
         block_text = block['raw_block'][4]
         block_page_number = block['page']
         if self.pending_classification is not None:
-            drop_to_file(self.pending_classification[0], self.pending_classification[1], self.pending_classification[2])
+            print(self.pending_classification[0])
+            print(type(self.pending_classification[0]))
+            print(self.pending_classification[1])
+            print(type(self.pending_classification[1]))
+            print(self.pending_classification[2])
+            print(type(self.pending_classification[2]))
+            drop_to_file(self.pending_classification[0], self.pending_classification[1].lower(), self.pending_classification[2])
             self.undo_stack.append(self.pending_classification)
         self.pending_classification = (block_text, label, block_page_number)
         self.current_index += 1
@@ -133,7 +139,7 @@ class ManualClassifierGUI:
 def main():
     file_name = input("File name (without ending): ")
     pdf_path = f"{file_name}.pdf"
-    output_file = "output.txt"
+    output_file = "output.json"
     if not os.path.exists(pdf_path):
         print(f"PDF file '{pdf_path}' not found.")
         return
