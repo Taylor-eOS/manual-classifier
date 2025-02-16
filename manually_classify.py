@@ -91,12 +91,12 @@ class ManualClassifierGUI:
         block_text = block['raw_block'][4]
         block_page_number = block['page']
         if self.pending_classification is not None:
-            print(self.pending_classification[0])
-            print(type(self.pending_classification[0]))
-            print(self.pending_classification[1])
-            print(type(self.pending_classification[1]))
-            print(self.pending_classification[2])
-            print(type(self.pending_classification[2]))
+            #print(self.pending_classification[0])
+            #print(type(self.pending_classification[0]))
+            #print(self.pending_classification[1])
+            #print(type(self.pending_classification[1]))
+            #print(self.pending_classification[2])
+            #print(type(self.pending_classification[2]))
             drop_to_file(self.pending_classification[0], self.pending_classification[1].lower(), self.pending_classification[2])
             self.undo_stack.append(self.pending_classification)
         self.pending_classification = (block_text, label, block_page_number)
