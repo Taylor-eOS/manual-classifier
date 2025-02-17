@@ -8,25 +8,21 @@ import numpy as np
 from wordfreq import word_frequency
 from collections import Counter
 from utils import delete_if_exists
-
 nlp = spacy.load("en_core_web_sm") #python -m spacy download en_core_web_sm
 
 def extract_geometric_features(pdf_path, output_json="output.json"):
     delete_if_exists(output_json)
     doc = fitz.open(pdf_path)
-    all_pages_data = []
-
+    all_blocks = []
     for page_num in range(len(doc)):
         page = doc.load_page(page_num)
         blocks = page.get_text("blocks")
         all_relative_font_sizes = calculate_all_relative_font_sizes(page)
-
         page_data = []
         for idx, block in enumerate(blocks):
             if len(block) < 6:
                 print(f"Warning: Block at index {idx} on page {page_num + 1} is incomplete")
                 continue
-
             x0, y0, x1, y1, text, block_id = block[:6]
             if text.strip():
                 page_data.append({
@@ -48,22 +44,27 @@ def extract_geometric_features(pdf_path, output_json="output.json"):
                     "text": text.strip(),
                     "type": '0'
                 })
-
         processed_page_data = process_drop_cap(page_data)
-        all_pages_data.append({"page": page_num, "blocks": processed_page_data})
-
-    save_to_json(all_pages_data, output_json)
+        all_blocks.extend(processed_page_data)
+    save_to_json(all_blocks, output_json
+    print("Done")
 
 def save_to_json(data, output_file):
-    """ Save extracted text block data to a JSON file. """
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 # Utility functions
-def calculate_height(y0, y1): return y1 - y0
-def calculate_width(x0, x1): return x1 - x0
-def calculate_position(y0, page_height): return y0 / page_height
-def calculate_letter_count(text): return sum(c.isalpha() for c in text)
+def calculate_height(y0, y1):
+    return y1 - y0
+
+def calculate_width(x0, x1):
+    return x1 - x0
+
+def calculate_position(y0, page_height):
+    return y0 / page_height
+
+def calculate_letter_count(text):
+    return sum(c.isalpha() for c in text)
 
 def calculate_punctuation_proportion(text):
     total_characters = len(text)
@@ -137,5 +138,7 @@ def process_drop_cap(page_data):
     return page_data
 
 if __name__ == "__main__":
-    extract_geometric_features("input.pdf", "output.json")
+    input_file = input("File (without ending): ")
+    input_file = input_file + ".pdf"
+    extract_geometric_features(input_file, "extracted_data.json")
 
