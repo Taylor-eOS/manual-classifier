@@ -83,10 +83,10 @@ class ManualClassifierGUI:
 
     def classify(self, label_idx):
         label = self.button_texts[label_idx]
-        if label == "Exclude":
-            self.current_index += 1
-            self.load_current_block()
-            return
+        #if label == "exclude":
+        #    self.current_index += 1
+        #    self.load_current_block()
+        #    return
         block = self.all_blocks[self.current_index]
         block_text = block['raw_block'][4]
         block_page_number = block['page']
@@ -131,10 +131,10 @@ class ManualClassifierGUI:
     def on_close(self):
         if self.pending_classification is not None:
             drop_to_file(self.pending_classification[0], self.pending_classification[1], self.pending_classification[2])
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.doc.close()
-            self.root.destroy()
-            sys.exit()
+        #if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        self.doc.close()
+        self.root.destroy()
+        sys.exit()
 
 def main():
     file_name = input("File name (without ending): ")
